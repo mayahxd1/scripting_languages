@@ -1,0 +1,76 @@
+#!/usr/bin/python3
+# Maya Cizina
+# Lab 4 - Temp
+# CS 3030 - Scripting Languages
+
+print("Welcome to the CS 3030 Temperature Conversion Program")
+
+# Function to convert Fahrenheit to Celsius
+def fahrenheitToCelsius(fahrenheit):
+    celsius = (fahrenheit - 32.0) * (5.0/9.0)
+    return celsius
+
+# Function to convert Celsius to Fahrenheit
+def celsiusToFahrenheit(celsius):
+    fahrenheit = ((9.0/5.0)) * celsius + 32.0
+    return fahrenheit
+
+# Main program loop
+while True: 
+    try:
+        print("\nMain Menu\n")
+        print("1:Fahrenheit to Celsius")
+        print("2:Celsius to Fahrenheit")
+        print("3:Exit program")
+        
+        # User input
+        temp = input("\nPlease enter 1, 2 or 3: ")
+        
+        # Check for empty input
+        if temp == "":
+            raise ValueError("Empty input. Please enter a number between 1 and 3.")
+        
+        # Convert input to integer
+        temp = int(temp)
+    
+    # Check for invalid input
+    except ValueError: 
+        print("\nInvalid entry")
+        continue
+    
+    if temp == 3:
+        print("\nExiting program")
+        break
+    
+    elif temp == 1:
+        try:
+            fahrenheit = float(input("\nPlease enter degrees Fahrenheit: "))
+            
+            if fahrenheit == "":
+                raise ValueError("Empty input. Please enter a number.")
+            
+        except ValueError:
+            print("\nInvalid entry")
+            continue
+        celsius_conversion = fahrenheitToCelsius(fahrenheit)
+        print("\n%.1f degrees Fahrenheit equals %.1f degrees Celsius\n" % (fahrenheit, celsius_conversion))
+    
+    elif temp == 2:
+        try:
+            celsius = float(input("\nPlease enter degrees Celsius: "))
+            
+            if celsius == "":
+                raise ValueError("Empty input. Please enter a number.")
+            
+        except ValueError:
+            print("\nInvalid entry")
+            continue
+        fahrenheit_conversion = celsiusToFahrenheit(celsius)
+        print("\n%.1f degrees Celsius equals %.1f degrees Fahrenheit\n" % (celsius, fahrenheit_conversion))
+        continue
+    
+    # Check for invalid input
+    else:
+        print("\nInvalid entry")
+        continue
+

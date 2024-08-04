@@ -1,0 +1,97 @@
+#!/usr/bin/python3
+# Maya Cizina
+# Lab 5 - Database Loader
+# CS 3030 - Scripting Languages
+
+import sqlite3
+import csv
+import sys
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: ./dbload INPUT OUTPUT")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+
+    try:
+        conn = sqlite3.connect(output_file)
+    except sqlite3.Error as e:
+        print(f"Error opening database: {e}")
+        sys.exit(1)
+
+    try:
+        with open(input_file, 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            headers = next(reader)  # Skip the header row
+
+            curs = conn.cursor()
+
+            # Drop tables if they exist
+            curs.execute('DROP TABLE IF EXISTS people')
+            curs.execute('DROP TABLE IF EXISTS courses')
+
+            # Create tables
+            curs.execute('''CREATE TABLE people (
+                id TEXT PRIMARY KEY UNIQUE,
+                lastname TEXT,
+                firstname TEXT,
+                email TEXT,
+                major TEXT,
+                city TEXT,
+                state TEXT,
+                zip TEXT
+            )''')
+
+            curs.execute('''CREATE TABLE courses (
+                id TEXT,
+                subjcode TEXT,
+                coursenumber TEXT,
+                termcode TEXT
+            )''')
+
+            for row in reader:
+                wnumber = row[0]
+                firstname = row[1]
+                lastname = row[2]
+                email = row[3]
+                major = row[4]
+                course = row[5]
+                termcode = row[6]
+                city = row[7]
+                state = row[8]
+                zip_code = row[9]
+
+                coursedata = course.split(" ")
+                subjcode = coursedata[0]
+                coursenumber = coursedata[1]
+
+                try:
+                    # Insert into people table
+                    curs.execute('''INSERT OR IGNORE INTO people (id, lastname, firstname, email, major, city, state, zip)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                                 (wnumber, lastname, firstname, email, major, city, state, zip_code))
+
+                    # Insert into courses table
+                    curs.execute('''INSERT INTO courses (id, subjcode, coursenumber, termcode)
+                                    VALUES (?, ?, ?, ?)''',
+                                 (wnumber, subjcode, coursenumber, termcode))
+
+                except sqlite3.Error as e:
+                    print(f"Error inserting data: {e}")
+
+            conn.commit()
+
+    except Exception as e:
+        print(f"Error processing file: {e}")
+        sys.exit(1)
+
+    finally:
+        conn.close()
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+

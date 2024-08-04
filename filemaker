@@ -1,0 +1,93 @@
+#!/usr/bin/python3
+# Maya Cizina
+# Lab 6 - Filemaker
+# CS 3030 - Scripting Languages
+import sys
+import shlex
+import random
+
+# Function to read lines from a file and return them as a list
+def read_file(filename):
+    try:
+        with open(filename, 'r') as f:
+            return f.readlines()
+    except FileNotFoundError:
+        print(f"Error: File {filename} not found.")
+        exit(1)
+
+# Function to parse the command file and preprocess the WORD commands
+def preprocess_commands(command_file):
+    commands = []
+    random_files = {}
+    try:
+        with open(command_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                cmd = shlex.split(line)
+                commands.append(cmd)
+                if cmd[0] == "WORD":
+                    if cmd[2] not in random_files:
+                        random_files[cmd[2]] = read_file(cmd[2])
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
+    return commands, random_files
+
+# Function to generate random data based on commands and record count
+def generate_random_data(commands, record_count, random_files):
+    data = []
+    for _ in range(record_count):
+        random_data = {}
+        record = ""
+        for cmd in commands:
+            if cmd[0] == "STRING":
+                record += cmd[1].encode().decode("unicode_escape")
+            elif cmd[0] == "WORD":
+                word_list = random_files[cmd[2]]
+                random_index = random.randint(0, len(word_list) - 1)
+                random_word = word_list[random_index].strip()
+                random_data[cmd[1]] = random_word
+                record += random_word
+            elif cmd[0] == "INTEGER":
+                random_int = random.randint(int(cmd[2]), int(cmd[3]))
+                random_data[cmd[1]] = random_int
+                record += str(random_int)
+            elif cmd[0] == "REFER":
+                if cmd[1] in random_data:
+                    record += str(random_data[cmd[1]])
+        data.append(record)
+    return data
+
+# Main function to process input arguments and execute commands
+def main():
+    if len(sys.argv) != 4:
+        print("Usage: ./filemaker INPUTCOMMANDFILE OUTPUTFILE RECORDCOUNT")
+        exit(1)
+
+    input_command_file = sys.argv[1]
+    output_file = sys.argv[2]
+    try:
+        record_count = int(sys.argv[3])
+        if record_count < 0:
+            raise ValueError("Record count must be a positive integer.")
+    except ValueError as e:
+        print(f"Error: {e}")
+        exit(1)
+
+    commands, random_files = preprocess_commands(input_command_file)
+
+    with open(output_file, 'w') as f:
+        # Handle HEADER command
+        header_written = False
+        for cmd in commands:
+            if cmd[0] == "HEADER" and not header_written:
+                f.write(cmd[1].encode().decode("unicode_escape"))
+                header_written = True
+
+        data = generate_random_data(commands, record_count, random_files)
+        # Write each record with a newline, without adding extra newlines
+        for record in data:
+            f.write(record)
+
+if __name__ == "__main__":
+    main()
